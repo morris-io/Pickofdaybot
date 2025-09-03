@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - YourCapper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/dashboard" class="text-2xl font-bold text-blue-700">YourCapper</a>
+        <nav class="space-x-6">
+          <a href="/dashboard" class="text-gray-600 hover:text-blue-700 font-medium">Dashboard</a>
+          <a href="/logout" class="text-gray-600 hover:text-red-600 font-medium">Logout</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Admin Dashboard -->
+    <main class="container mx-auto px-6 py-12">
+      <h1 class="text-3xl font-bold text-blue-700 mb-8">Admin Dashboard</h1>
+
+      <!-- Summary Cards -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Users</h2>
+          <p class="text-3xl font-bold text-blue-700">1,245</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 class="text-lg font-semibold text-gray-700 mb-2">Active Subscriptions</h2>
+          <p class="text-3xl font-bold text-green-600">876</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 class="text-lg font-semibold text-gray-700 mb-2">Today's Picks Published</h2>
+          <p class="text-3xl font-bold text-yellow-500">5</p>
+        </div>
+      </section>
+
+      <!-- Manage Users -->
+      <section class="bg-white p-6 rounded-lg shadow mb-12">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manage Users</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 text-left text-gray-600 font-medium">Name</th>
+                <th class="px-4 py-3 text-left text-gray-600 font-medium">Email</th>
+                <th class="px-4 py-3 text-left text-gray-600 font-medium">Status</th>
+                <th class="px-4 py-3 text-left text-gray-600 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-4 py-3">John Doe</td>
+                <td class="px-4 py-3">john@example.com</td>
+                <td class="px-4 py-3 text-green-600 font-semibold">Active</td>
+                <td class="px-4 py-3 space-x-2">
+                  <a href="#" class="text-blue-700 font-semibold hover:underline">Edit</a>
+                  <a href="#" class="text-red-600 font-semibold hover:underline">Deactivate</a>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3">Jane Smith</td>
+                <td class="px-4 py-3">jane@example.com</td>
+                <td class="px-4 py-3 text-red-600 font-semibold">Inactive</td>
+                <td class="px-4 py-3 space-x-2">
+                  <a href="#" class="text-blue-700 font-semibold hover:underline">Edit</a>
+                  <a href="#" class="text-green-600 font-semibold hover:underline">Activate</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Add New Pick -->
+      <section class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Add New Pick</h2>
+        <form action="/admin/add-pick" method="POST" class="space-y-6">
+          <div>
+            <label for="sport" class="block text-gray-700 font-medium mb-2">Sport</label>
+            <select
+              id="sport"
+              name="sport"
+              class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select Sport</option>
+              <option value="NBA">NBA</option>
+              <option value="NFL">NFL</option>
+              <option value="MLB">MLB</option>
+              <option value="NHL">NHL</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="matchup" class="block text-gray-700 font-medium mb-2">Matchup</label>
+            <input
+              type="text"
+              id="matchup"
+              name="matchup"
+              class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Lakers vs Celtics"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="pick" class="block text-gray-700 font-medium mb-2">Pick</label>
+            <input
+              type="text"
+              id="pick"
+              name="pick"
+              class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Lakers -3.5"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="confidence" class="block text-gray-700 font-medium mb-2">Confidence (%)</label>
+            <input
+              type="number"
+              id="confidence"
+              name="confidence"
+              min="0"
+              max="100"
+              class="w-full border border-gray-300 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. 72"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="bg-blue-700 text-white font-bold py-3 px-6 rounded hover:bg-blue-800 transition"
+          >
+            Add Pick
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-6 text-center">
+      &copy; 2025 YourCapper. All rights reserved.
+    </footer>
+  </body>
+</html>

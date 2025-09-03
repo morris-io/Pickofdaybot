@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - YourCapper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/dashboard" class="text-2xl font-bold text-blue-700">YourCapper</a>
+        <nav class="space-x-6">
+          <a href="/account" class="text-gray-600 hover:text-blue-700 font-medium">Account</a>
+          <a href="/logout" class="text-gray-600 hover:text-red-600 font-medium">Logout</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+      <h1 class="text-3xl font-bold text-blue-700 mb-8">Welcome Back, John!</h1>
+
+      <!-- Daily Picks Section -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Today's Picks</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h3 class="text-lg font-bold text-blue-700 mb-2">NBA: Lakers vs Celtics</h3>
+            <p class="text-gray-600 mb-2">Pick: Lakers -3.5</p>
+            <p class="text-green-600 font-semibold">Confidence: 74%</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h3 class="text-lg font-bold text-blue-700 mb-2">NFL: Chiefs vs Bills</h3>
+            <p class="text-gray-600 mb-2">Pick: Over 48.5</p>
+            <p class="text-green-600 font-semibold">Confidence: 68%</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h3 class="text-lg font-bold text-blue-700 mb-2">MLB: Yankees vs Red Sox</h3>
+            <p class="text-gray-600 mb-2">Pick: Yankees ML</p>
+            <p class="text-green-600 font-semibold">Confidence: 72%</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Historical Performance -->
+      <section>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Performance Overview</h2>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <p class="text-gray-600 mb-4">
+            YourCapper has hit <span class="text-green-600 font-bold">62%</span> of picks over the last 30 days across all sports.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-4 border-l-4 border-green-500">
+              <h3 class="text-lg font-semibold text-gray-700">NBA</h3>
+              <p class="text-gray-600">Last 30 days: <span class="font-bold text-green-600">64%</span> wins</p>
+            </div>
+            <div class="p-4 border-l-4 border-green-500">
+              <h3 class="text-lg font-semibold text-gray-700">NFL</h3>
+              <p class="text-gray-600">Last 30 days: <span class="font-bold text-green-600">59%</span> wins</p>
+            </div>
+            <div class="p-4 border-l-4 border-green-500">
+              <h3 class="text-lg font-semibold text-gray-700">MLB</h3>
+              <p class="text-gray-600">Last 30 days: <span class="font-bold text-green-600">63%</span> wins</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-6 text-center">
+      &copy; 2025 YourCapper. All rights reserved.
+    </footer>
+  </body>
+</html>

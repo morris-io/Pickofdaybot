@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - YourCapper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/home" class="text-2xl font-bold text-blue-700">YourCapper</a>
+        <nav class="space-x-6">
+          <a href="/home" class="text-gray-600 hover:text-blue-700 font-medium">Home</a>
+          <a href="/blog" class="text-gray-600 hover:text-blue-700 font-medium">Blog</a>
+          <a href="/dashboard" class="text-gray-600 hover:text-blue-700 font-medium">Dashboard</a>
+          <a href="/login" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition">Login</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Privacy Policy Content -->
+    <main class="container mx-auto px-6 py-12 max-w-3xl">
+      <h1 class="text-4xl font-bold text-blue-700 mb-8">Privacy Policy</h1>
+
+      <p class="text-gray-700 mb-6">
+        At YourCapper, your privacy is critically important to us. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your personal data.
+      </p>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Information We Collect</h2>
+      <ul class="list-disc list-inside text-gray-700 mb-6 space-y-2">
+        <li>Personal identification information (name, email, etc.)</li>
+        <li>Payment information for subscriptions</li>
+        <li>Usage data and analytics on our platform</li>
+        <li>Communications you send us via support channels</li>
+      </ul>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">How We Use Your Information</h2>
+      <p class="text-gray-700 mb-6">
+        We use your data to:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 mb-6 space-y-2">
+        <li>Provide and maintain our services</li>
+        <li>Process payments and manage subscriptions</li>
+        <li>Communicate with you about your account and updates</li>
+        <li>Improve our platform and develop new features</li>
+      </ul>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Cookies</h2>
+      <p class="text-gray-700 mb-6">
+        We use cookies to improve your experience, analyze usage, and show relevant content. You can disable cookies in your browser settings, but some features may not function properly.
+      </p>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Third-Party Services</h2>
+      <p class="text-gray-700 mb-6">
+        We may share information with trusted partners who help us operate our platform, such as payment processors and analytics providers. These partners are obligated to protect your data.
+      </p>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Your Rights</h2>
+      <p class="text-gray-700 mb-6">
+        You have the right to access, update, or delete your personal data. To exercise these rights, please contact us at support@yourcapper.com.
+      </p>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Changes to This Policy</h2>
+      <p class="text-gray-700 mb-6">
+        We may update this Privacy Policy from time to time. Changes will be posted on this page, and your continued use of our services constitutes acceptance of those changes.
+      </p>
+
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">Contact Us</h2>
+      <p class="text-gray-700">
+        If you have any questions about this Privacy Policy, please contact us at:
+        <br>
+        <span class="font-semibold">Email:</span> support@yourcapper.com
+      </p>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-6 text-center">
+      &copy; 2025 YourCapper. All rights reserved.
+    </footer>
+  </body>
+</html>
