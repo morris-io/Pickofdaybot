@@ -396,6 +396,13 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
               simulations of relevant outcomes in real time. Our algorithms have maintained a
               success rate of 72.2% this month.
             </HeroText>
+            
+            {/* Use the public directory path for the video source */}
+            <video width="100%" height="auto" autoPlay loop muted style={{ maxWidth: '700px', margin: '0 auto 1.5rem', display: 'block' }}>
+                <source src="/promo-video.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+            </video>
+  
             <Buttons>
               <Button onClick={handleStartTrial}>
                 Start Your 7-Day Free Trial
