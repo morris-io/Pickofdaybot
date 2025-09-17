@@ -11,13 +11,13 @@ import { useState, useEffect } from 'react'
 // --- Styled components ---
 const PageWrapper = styled.div`
   min-height: calc(100vh - 160px);
-  padding: 0.05rem 1rem;
+  padding: auto 1rem;
   background: #f9fafb;
 `
 
 const Hero = styled.section`
   max-width: 700px;
-  margin: 0 auto 1.8rem;
+  margin: 1rem 1.8rem;
   text-align: center;
 `
 
@@ -30,7 +30,7 @@ const HeroTitle = styled.h1`
 const HeroText = styled.p`
   font-size: 1.05rem;
   color: #4b5563;
-  line-height: 1.6;
+  line-height: 1.0;
   margin-bottom: 1.5rem;
 `
 
