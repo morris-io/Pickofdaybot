@@ -63,7 +63,7 @@ const Controls = styled.form`
 `
 
 const Select = styled.select`
-  padding: 0.6rem 0.75rem;
+  padding: 0.6rem 0.69rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   background: white;
@@ -79,22 +79,23 @@ const CheckboxLabel = styled.label`
 `
 
 const Button = styled.button`
-  background: #4f46e5;
+  display: inline-flex;
+  background: #111827;
   color: white;
   border: 0;
   border-radius: 0.5rem;
-  padding: 0.8rem 1.29rem;
+  padding: 0.8rem 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  &:hover { background: #4338ca; }
+  &:hover { background: #0b0f1a; }
 `
 
 const Secondary = styled(Link)`
-  display: inline-block;
+  display: inline-flex;
   background: #111827;
   color: white;
   border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem .9rem;
   text-decoration: none;
   font-weight: 500;
   &:hover { background: #0b0f1a; }
@@ -497,9 +498,7 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
       <Wrap>
         <Header>
           <Title>Pick History</Title>
-          <div style={{ display: 'flex', gap: '.5rem' }}>
-            <Secondary href="/dashboard">Back to Dashboard</Secondary>
-          </div>
+        
         </Header>
 
         <Header>
