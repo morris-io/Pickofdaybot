@@ -182,6 +182,36 @@ const SuccessRateSpan = styled.span`
   display: inline;
 `;
 
+// Inline component with decimal support
+function InlineCounter({ targetPercentage = 72.2 }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000;
+    const steps = 100;
+    const increment = targetPercentage / steps;
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= targetPercentage) {
+        setCount(targetPercentage);
+        clearInterval(timer);
+      } else {
+        setCount(start);
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [targetPercentage]);
+
+  return (
+    <SuccessRateSpan>
+      {count.toFixed(1)}%
+    </SuccessRateSpan>
+  );
+}
+
 // Helper functions (same as before)
 function startOfTodayEST() {
   const now = new Date()
@@ -361,36 +391,6 @@ function Simulator({ teams, pick, starRating }) {
   )
 }
 
-// Inline component with decimal support
-function InlineCounter({ targetPercentage = 72.2 }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let start = 0;
-    const duration = 2000;
-    const steps = 100;
-    const increment = targetPercentage / steps;
-
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= targetPercentage) {
-        setCount(targetPercentage);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [targetPercentage]);
-
-  return (
-    <SuccessRateSpan>
-      {count.toFixed(1)}%
-    </SuccessRateSpan>
-  );
-}
-
 /* ---------- Page component ---------- */
 export default function Dashboard({ session = {}, isSubscribed = false, picks = [] }) {
   const router = useRouter()
@@ -472,7 +472,9 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
                   {p.starRating != null && <Info>Rating: {p.starRating}/5 ⭐</Info>}
                   <Info>Time: {fmtEST(p.gameTime)}</Info>
                   
-                  <Simulator teams={p.teams} pick={p.pick} starRating={p.starRating} />
+                  {/* Conditionally render the Simulator */}
+                  {p.sport === 'MLB' && <Simulator teams={p.teams} pick={p.pick} starRating={p.starRating} />}
+                  
                   {p.rationale && (
                     <Info style={{ fontStyle: 'italic', marginTop: '0.35rem' }}>
                       {p.rationale}
@@ -510,7 +512,7 @@ export async function getServerSideProps(context) {
     const start  = startOfTodayEST()
     const now    = new Date()
 
-    const rows = await client
+    const mlbPicks = await client
       .db()
       .collection('picks')
       .aggregate([
@@ -548,10 +550,24 @@ export async function getServerSideProps(context) {
         }
       ])
       .toArray()
+    
+    // NEW: Fetch NFL picks from the 'nfl-picks' collection
+    const nflPicks = await client
+        .db()
+        .collection('nfl-picks')
+        .find({
+            createdAt: { $gte: start }
+        })
+        .sort({ createdAt: -1 })
+        .limit(1)
+        .toArray();
 
-    picks = rows.map(p => ({
+    // Combine and format all picks
+    const allPicks = [...mlbPicks, ...nflPicks];
+    
+    picks = allPicks.map(p => ({
       _id:        p._id.toString(),
-      sport:      p.sport ?? 'MLB',
+      sport:      p.sport ?? 'NFL', // Default to NFL for new picks
       teams:      p.teams ?? '',
       pick:       p.pick  ?? null,
       confidence: p.confidence ?? null,
@@ -559,7 +575,7 @@ export async function getServerSideProps(context) {
       gameTime:   p.gameTime ? new Date(p.gameTime).toISOString() : null,
       algorithm:  p.algorithm  ?? null,
       starRating: p.starRating ?? null,
-    }))
+    }));
   }
 
   const session = {
