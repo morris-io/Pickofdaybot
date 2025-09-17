@@ -117,7 +117,7 @@ const Card = styled.div`
   color: inherit;
   text-decoration: none;
   transition: transform .15s, box-shadow .15s;
-  &:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(0,0,0,.06); }
+  &:box-shadow: 0 8px 16px rgba(0,0,0,.06); }
   cursor: pointer;
 `
 
