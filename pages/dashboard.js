@@ -445,7 +445,7 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
 
             <Buttons>
               <Button onClick={handleStartTrial}>
-                Start Your Free Trial
+                Start a Free Trial
               </Button>
               <Link href="/pick-history" passHref legacyBehavior>
                 <LinkButton>View Pick History</LinkButton>
