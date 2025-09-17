@@ -17,7 +17,7 @@ const PageWrapper = styled.div`
 
 const Hero = styled.section`
   max-width: 700px;
-  margin: 3rem 1.8rem;
+  margin: 2.5rem 1.8rem;
   text-align: center;
 `
 
