@@ -63,7 +63,8 @@ const Controls = styled.form`
 `
 
 const Select = styled.select`
-  padding: 0.6rem 0.69rem;
+  display: inline-flex;
+  padding: 0.6rem 0.60rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   background: white;
