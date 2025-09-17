@@ -461,7 +461,7 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
     <Layout>
       <PageWrapper>
         <Hero>
-          <HeroTitle>Todays Forecast</HeroTitle>
+          <HeroTitle>Todays Picks</HeroTitle>
           <HeroText>Here are your picks for today.</HeroText>
         </Hero>
 
