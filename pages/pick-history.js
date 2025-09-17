@@ -55,11 +55,12 @@ const SummaryPill = styled.div`
   font-weight: 600;
 `
 
+// --- UPDATED CONTROLS STYLES ---
 const Controls = styled.form`
-  display: flex;
+  display: flex; /* This is the key change */
+  align-items: center; /* This vertically aligns the items */
+  flex-wrap: nowrap; /* This prevents the items from wrapping to a new line */
   gap: 0.5rem;
-  align-items: center;
-  flex-wrap: wrap;
 `
 
 const Select = styled.select`
@@ -109,7 +110,6 @@ const List = styled.div`
   gap: 0.75rem;
 `
 
-// CHANGED: was styled(Link); now styled.div so it doesn't navigate
 const Card = styled.div`
   display: block;
   background: #fff;
@@ -270,7 +270,6 @@ function fmtEST(isoOrDate) {
   )
 }
 
-// sync query ↔ state (keeps your existing UX)
 function useQuerySync(defaults) {
   const router = useRouter()
   const [state, setState] = useState(() => {
@@ -297,7 +296,6 @@ function useQuerySync(defaults) {
   return [state, (next) => setState(next)]
 }
 
-// normalize result values: 'win'/'won', 'loss'/'lost', 'push', null/undefined
 function normResult(val) {
   if (!val) return 'pending'
   const v = String(val).toLowerCase()
@@ -321,14 +319,12 @@ function winProbFromStars(stars) {
 }
 
 function parseTeamsPair(teams) {
-  // Expect "Away Team vs Home Team"
   const [away, home] = (teams || '').split(' vs ').map(s => (s || '').trim())
   return { away: away || 'Away', home: home || 'Home' }
 }
 
 function parsePickTeam(pick) {
   if (!pick) return null
-  // strip trailing variants: "ML", "Game 3 ML"
   return pick
     .replace(/\s*Game\s*\d+\s*/i, '')
     .replace(/\s*ML\s*/i, '')
@@ -344,12 +340,10 @@ function inferPickSide(teams, pickTeam) {
   const isHome = p && (low(home).includes(p) || p.includes(low(home)))
   if (isAway) return { pickIsAway: true, pickTeam: away, oppTeam: home }
   if (isHome) return { pickIsAway: false, pickTeam: home, oppTeam: away }
-  // fallback: assume pickTeam is as-is, opponent unknown
   return { pickIsAway: null, pickTeam, oppTeam: (isAway || isHome) ? null : (away === pickTeam ? home : away) }
 }
 
 function randRuns(base = 0.25) {
-  // small, baseball-like distribution 0–2 most of the time; occasional 3
   const r = Math.random()
   if (r < base) return 0
   if (r < base + 0.55) return 1
@@ -363,7 +357,7 @@ function sleep(ms) {
 
 function Simulator({ teams, pick, starRating }) {
   const [open, setOpen] = useState(false)
-  const [log, setLog] = useState([]) // [{inning, away, home}]
+  const [log, setLog] = useState([])
   const [tot, setTot] = useState({ away: 0, home: 0 })
   const [running, setRunning] = useState(false)
   const [finalText, setFinalText] = useState('')
@@ -379,7 +373,6 @@ function Simulator({ teams, pick, starRating }) {
     setTot({ away: 0, home: 0 })
     setFinalText('')
 
-    // Decide winner from probability
     const pickWins = Math.random() < prob
     const winnerSide = pickIsAway == null
       ? (pickWins ? 'away' : 'home')
@@ -388,11 +381,9 @@ function Simulator({ teams, pick, starRating }) {
     let a = 0, h = 0
 
     for (let i = 1; i <= 9; i++) {
-      // generate provisional runs
       let ar = randRuns(0.35)
       let hr = randRuns(0.35)
 
-      // on the 9th, nudge to desired outcome if close
       if (i === 9) {
         const wantPickSide = winnerSide
         const curPick = (wantPickSide === 'away') ? a : h
@@ -408,7 +399,7 @@ function Simulator({ teams, pick, starRating }) {
 
       setLog(prev => [...prev, { inning: i, away: ar, home: hr }])
       setTot({ away: a, home: h })
-      await sleep(350) // animate inning-by-inning
+      await sleep(350)
     }
 
     const final = `${away} ${a} — ${home} ${h}`
@@ -499,7 +490,14 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
       <Wrap>
         <Header>
           <Title>Pick History</Title>
-        
+          <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={controls.includeUpcoming}
+                onChange={e => setControls(s => ({ ...s, includeUpcoming: e.target.checked }))}
+              />
+              Include upcoming
+            </CheckboxLabel>
         </Header>
 
         <Header>
@@ -527,14 +525,7 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
             
             <Button type="submit">Apply</Button>
 
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={controls.includeUpcoming}
-                onChange={e => setControls(s => ({ ...s, includeUpcoming: e.target.checked }))}
-              />
-              Include upcoming
-            </CheckboxLabel>
+            
 
           </Controls>
         </Header>
@@ -625,12 +616,10 @@ export async function getServerSideProps(ctx) {
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   if (!session) return { redirect: { destination: '/login', permanent: false } }
 
-  // Treat admins as subscribed (kept here if you later gate history)
   const role = session.user?.role || 'user'
   const isAdmin = role === 'admin'
   const isSubscribed = isAdmin ? true : (session.user?.isSubscribed ?? false)
 
-  // Parse filters
   const q = ctx.query || {}
   const algo = (q.algo || 'all').toString()
   const days = Math.max(1, parseInt(q.days || '30', 10))
