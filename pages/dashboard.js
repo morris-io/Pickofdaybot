@@ -11,13 +11,13 @@ import { useState, useEffect } from 'react'
 // --- Styled components ---
 const PageWrapper = styled.div`
   min-height: calc(100vh - 160px);
-  padding: 2rem 1rem;
+  padding: .75rem 1rem;
   background: #f9fafb;
 `
 
 const Hero = styled.section`
   max-width: 700px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1.8rem;
   text-align: center;
 `
 
