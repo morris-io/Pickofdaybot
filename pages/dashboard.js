@@ -6,7 +6,7 @@ import clientPromise        from '../lib/mongodb'
 import Layout               from '../components/Layout'
 import styled               from 'styled-components'
 import Link                 from 'next/link'
-import { useState }         from 'react'
+import { useState, useEffect } from 'react'
 
 // --- Styled components ---
 const PageWrapper = styled.div`
@@ -54,7 +54,6 @@ const Button = styled.button`
   &:hover { background: #4338ca; }
 `
 
-/** Anchor styled as a button, wrapped with <Link> */
 const LinkButton = styled.a`
   display: inline-block;
   background: #111827;
@@ -76,7 +75,6 @@ const PicksGrid = styled.div`
   }
 `
 
-// Match the Pick History card styling (non-clickable)
 const Card = styled.div`
   display: block;
   background: #ffffff;
@@ -108,13 +106,12 @@ const Info = styled.p`
   margin-bottom: 0.35rem;
 `
 
-/* ---------- Simulator styles (copied from pick-history) ---------- */
 const SimWrap = styled.div`
   margin-top: .5rem;
   border: 1px solid #e5e7eb;
   border-radius: .5rem;
   background: #fafafa;
-  overflow: hidden; /* keep within card */
+  overflow: hidden;
 `
 
 const SimHeader = styled.button`
@@ -142,7 +139,7 @@ const Grid = styled.div`
   grid-template-columns: 56px repeat(9, minmax(16px, 1fr)) 56px;
   gap: .25rem;
   align-items: center;
-  overflow-x: auto; /* safe scroll if narrow screens */
+  overflow-x: auto;
 `
 
 const Cell = styled.div`
@@ -177,7 +174,15 @@ const Note = styled.div`
   margin-top: .25rem;
 `
 
-// --- Helper: start of "today" in EST ---
+const SuccessRateSpan = styled.span`
+  font-weight: 700;
+  color: #1f2937;
+  font-family: 'monospace';
+  text-shadow: 0 0 2px rgba(31, 41, 55, 0.5);
+  display: inline;
+`;
+
+// Helper functions (same as before)
 function startOfTodayEST() {
   const now = new Date()
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -191,7 +196,6 @@ function startOfTodayEST() {
   return new Date(new Date(estString).toLocaleString('en-US', { timeZone: 'America/New_York' }))
 }
 
-// --- Helper to format ISO → EST ---
 function fmtEST(dateVal) {
   if (!dateVal) return 'TBD'
   const d = new Date(dateVal)
@@ -206,7 +210,6 @@ function fmtEST(dateVal) {
   )
 }
 
-/* ---------- Simulator logic (copied from pick-history) ---------- */
 function winProbFromStars(stars) {
   switch (Number(stars)) {
     case 1: return 0.60
@@ -219,14 +222,12 @@ function winProbFromStars(stars) {
 }
 
 function parseTeamsPair(teams) {
-  // Expect "Away Team vs Home Team"
   const [away, home] = (teams || '').split(' vs ').map(s => (s || '').trim())
   return { away: away || 'Away', home: home || 'Home' }
 }
 
 function parsePickTeam(pick) {
   if (!pick) return null
-  // strip trailing variants: "ML", "Game 3 ML"
   return pick
     .replace(/\s*Game\s*\d+\s*/i, '')
     .replace(/\s*ML\s*/i, '')
@@ -242,12 +243,10 @@ function inferPickSide(teams, pickTeam) {
   const isHome = p && (low(home).includes(p) || p.includes(low(home)))
   if (isAway) return { pickIsAway: true, pickTeam: away, oppTeam: home }
   if (isHome) return { pickIsAway: false, pickTeam: home, oppTeam: away }
-  // fallback: assume pickTeam is as-is, opponent unknown
   return { pickIsAway: null, pickTeam, oppTeam: (isAway || isHome) ? null : (away === pickTeam ? home : away) }
 }
 
 function randRuns(base = 0.25) {
-  // small, baseball-like distribution 0–2 most of the time; occasional 3
   const r = Math.random()
   if (r < base) return 0
   if (r < base + 0.55) return 1
@@ -261,7 +260,7 @@ function sleep(ms) {
 
 function Simulator({ teams, pick, starRating }) {
   const [open, setOpen] = useState(false)
-  const [log, setLog] = useState([]) // [{inning, away, home}]
+  const [log, setLog] = useState([])
   const [tot, setTot] = useState({ away: 0, home: 0 })
   const [running, setRunning] = useState(false)
   const [finalText, setFinalText] = useState('')
@@ -277,7 +276,6 @@ function Simulator({ teams, pick, starRating }) {
     setTot({ away: 0, home: 0 })
     setFinalText('')
 
-    // Decide winner from probability
     const pickWins = Math.random() < prob
     const winnerSide = pickIsAway == null
       ? (pickWins ? 'away' : 'home')
@@ -286,11 +284,9 @@ function Simulator({ teams, pick, starRating }) {
     let a = 0, h = 0
 
     for (let i = 1; i <= 9; i++) {
-      // generate provisional runs
       let ar = randRuns(0.35)
       let hr = randRuns(0.35)
 
-      // on the 9th, nudge to desired outcome if close
       if (i === 9) {
         const wantPickSide = winnerSide
         const curPick = (wantPickSide === 'away') ? a : h
@@ -306,7 +302,7 @@ function Simulator({ teams, pick, starRating }) {
 
       setLog(prev => [...prev, { inning: i, away: ar, home: hr }])
       setTot({ away: a, home: h })
-      await sleep(350) // animate inning-by-inning
+      await sleep(350)
     }
 
     const final = `${away} ${a} — ${home} ${h}`
@@ -365,12 +361,41 @@ function Simulator({ teams, pick, starRating }) {
   )
 }
 
+// Inline component with decimal support
+function InlineCounter({ targetPercentage = 72.2 }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000;
+    const steps = 100;
+    const increment = targetPercentage / steps;
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= targetPercentage) {
+        setCount(targetPercentage);
+        clearInterval(timer);
+      } else {
+        setCount(start);
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [targetPercentage]);
+
+  return (
+    <SuccessRateSpan>
+      {count.toFixed(1)}%
+    </SuccessRateSpan>
+  );
+}
+
 /* ---------- Page component ---------- */
 export default function Dashboard({ session = {}, isSubscribed = false, picks = [] }) {
   const router = useRouter()
   const name   = session.user?.name ?? 'Guest'
 
-  // 🔁 NEW: go straight to Stripe Checkout (removes the intermediate /subscribe page)
   const handleStartTrial = async () => {
     try {
       const res = await fetch('/api/create-checkout-session', { method: 'POST' })
@@ -380,7 +405,6 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
       router.push(url)
     } catch (err) {
       console.error(err)
-      // Fallback: if something goes wrong, you can route to a billing help page or toast
       alert('Unable to start checkout right now. Please try again in a moment.')
     }
   }
@@ -392,17 +416,17 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
           <Hero>
             <HeroTitle>Unlock your Edge</HeroTitle>
             <HeroText>
-              Designed to find large statistical disparities and their odds value through
-              simulations of relevant outcomes in real time. Our algorithms have maintained a
-              success rate of 72.2% this month.
+                Designed to simulate matchups thousands of times until large statistical disparities are found.
+            </HeroText>
+            <HeroText>
+                60 day success rate: <InlineCounter targetPercentage={72.2} />
             </HeroText>
             
-            {/* Use the public directory path for the video source */}
             <video width="100%" height="auto" autoPlay loop muted style={{ maxWidth: '700px', margin: '0 auto 1.5rem', display: 'block' }}>
                 <source src="/promo-video.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
-  
+
             <Buttons>
               <Button onClick={handleStartTrial}>
                 Start Your 7-Day Free Trial
@@ -430,7 +454,6 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
             <Hero>
               <HeroText>No upcoming picks for today yet. Check back soon.</HeroText>
             </Hero>
-            {/* Always show Pick History for subscribed users */}
             <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
               <Link href="/pick-history" passHref legacyBehavior>
                 <LinkButton>Pick History</LinkButton>
@@ -441,7 +464,6 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
           <>
             <PicksGrid>
               {picks.map(p => (
-                // Non-clickable card (no link to pick-detail)
                 <Card key={p._id}>
                   <Sport>{p.sport}{p.algorithm ? ` • ${p.algorithm.toUpperCase()}` : ''}</Sport>
                   <Teams>{p.teams}</Teams>
@@ -450,8 +472,6 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
                   {p.starRating != null && <Info>Rating: {p.starRating}/5 ⭐</Info>}
                   <Info>Time: {fmtEST(p.gameTime)}</Info>
                   
-
-                  {/* Simulator ONLY for subscribed/admin users & when picks exist — we're already in that state */}
                   <Simulator teams={p.teams} pick={p.pick} starRating={p.starRating} />
                   {p.rationale && (
                     <Info style={{ fontStyle: 'italic', marginTop: '0.35rem' }}>
@@ -462,7 +482,6 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
               ))}
             </PicksGrid>
 
-            {/* Also keep a Pick History button below the grid */}
             <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
               <Link href="/pick-history" passHref legacyBehavior>
                 <LinkButton>Pick History</LinkButton>
@@ -537,7 +556,7 @@ export async function getServerSideProps(context) {
       pick:       p.pick  ?? null,
       confidence: p.confidence ?? null,
       rationale:  p.rationale  ?? null,
-      gameTime:   p.gameTime ? new Date(p.gameTime).toISOString() : null, // Convert Date to string
+      gameTime:   p.gameTime ? new Date(p.gameTime).toISOString() : null,
       algorithm:  p.algorithm  ?? null,
       starRating: p.starRating ?? null,
     }))
