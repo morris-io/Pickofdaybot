@@ -136,7 +136,7 @@ const SimBody = styled.div`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: 56px repeat(9, minmax(16px, 1fr)) 56px;
+  grid-template-columns: ${props => props.isNFL ? '56px repeat(4, 1fr) 56px' : '56px repeat(9, minmax(16px, 1fr)) 56px'};
   gap: .25rem;
   align-items: center;
   overflow-x: auto;
@@ -284,11 +284,24 @@ function randRuns(base = 0.25) {
   return Math.random() < 0.85 ? 0 : 3
 }
 
+// Random score generator for an NFL quarter
+function randNFLScore() {
+    const r = Math.random();
+    if (r < 0.4) return 0;   // 40% chance of no score
+    if (r < 0.75) return 7;  // 35% chance of a TD
+    if (r < 0.95) return 3;  // 20% chance of a FG
+    return 10; // 5% chance of TD + FG (simplified)
+}
+
 function sleep(ms) {
   return new Promise(res => setTimeout(res, ms))
 }
 
-function Simulator({ teams, pick, starRating }) {
+function Simulator({ pickData }) {
+  const { sport, teams, pick, rating, starRating } = pickData;
+  const isNFL = sport === 'NFL';
+  const currentRating = rating ?? starRating;
+
   const [open, setOpen] = useState(false)
   const [log, setLog] = useState([])
   const [tot, setTot] = useState({ away: 0, home: 0 })
@@ -298,7 +311,10 @@ function Simulator({ teams, pick, starRating }) {
   const pTeam = parsePickTeam(pick)
   const { away, home } = parseTeamsPair(teams)
   const { pickIsAway, pickTeam } = inferPickSide(teams, pTeam)
-  const prob = winProbFromStars(starRating)
+  const prob = winProbFromStars(currentRating);
+
+  const periods = isNFL ? [1, 2, 3, 4] : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const periodKey = isNFL ? 'quarter' : 'inning';
 
   async function run() {
     setRunning(true)
@@ -313,26 +329,26 @@ function Simulator({ teams, pick, starRating }) {
 
     let a = 0, h = 0
 
-    for (let i = 1; i <= 9; i++) {
-      let ar = randRuns(0.35)
-      let hr = randRuns(0.35)
-
-      if (i === 9) {
-        const wantPickSide = winnerSide
-        const curPick = (wantPickSide === 'away') ? a : h
-        const curOpp  = (wantPickSide === 'away') ? h : a
-        if (curPick + (wantPickSide === 'away' ? ar : hr) <= curOpp + (wantPickSide === 'away' ? hr : ar)) {
-          if (wantPickSide === 'away') ar += 1
-          else hr += 1
+    for (const period of periods) {
+      let ar = isNFL ? randNFLScore() : randRuns(0.35)
+      let hr = isNFL ? randNFLScore() : randRuns(0.35)
+      
+      if (period === periods.length) {
+        const wantPickSide = winnerSide;
+        const curPickScore = (wantPickSide === 'away') ? a : h;
+        const curOppScore  = (wantPickSide === 'away') ? h : a;
+        if (curPickScore + (wantPickSide === 'away' ? ar : hr) <= curOppScore + (wantPickSide === 'away' ? hr : ar)) {
+          if (wantPickSide === 'away') ar += (isNFL ? 3 : 1);
+          else hr += (isNFL ? 3 : 1);
         }
       }
 
-      a += ar
-      h += hr
+      a += ar;
+      h += hr;
 
-      setLog(prev => [...prev, { inning: i, away: ar, home: hr }])
-      setTot({ away: a, home: h })
-      await sleep(350)
+      setLog(prev => [...prev, { [periodKey]: period, away: ar, home: hr }]);
+      setTot({ away: a, home: h });
+      await sleep(350);
     }
 
     const final = `${away} ${a} — ${home} ${h}`
@@ -352,21 +368,21 @@ function Simulator({ teams, pick, starRating }) {
 
       {open && (
         <SimBody onClick={(e) => e.stopPropagation()}>
-          <Grid>
+          <Grid isNFL={isNFL}>
             <Cell></Cell>
-            {[1,2,3,4,5,6,7,8,9].map(n => <Cell key={n}>{n}</Cell>)}
+            {periods.map(n => <Cell key={n}>{n}</Cell>)}
             <Cell><strong>T</strong></Cell>
 
             <TeamLabel title={away}>{away}</TeamLabel>
-            {[1,2,3,4,5,6,7,8,9].map(n => {
-              const row = log.find(r => r.inning === n)
+            {periods.map(n => {
+              const row = log.find(r => r[periodKey] === n)
               return <Cell key={`a-${n}`}>{row ? row.away : '—'}</Cell>
             })}
             <Cell><strong>{tot.away}</strong></Cell>
 
             <TeamLabel title={home}>{home}</TeamLabel>
-            {[1,2,3,4,5,6,7,8,9].map(n => {
-              const row = log.find(r => r.inning === n)
+            {periods.map(n => {
+              const row = log.find(r => r[periodKey] === n)
               return <Cell key={`h-${n}`}>{row ? row.home : '—'}</Cell>
             })}
             <Cell><strong>{tot.home}</strong></Cell>
@@ -465,15 +481,26 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
             <PicksGrid>
               {picks.map(p => (
                 <Card key={p._id}>
-                  <Sport>{p.sport}{p.algorithm ? ` • ${p.algorithm.toUpperCase()}` : ''}</Sport>
+                  <Sport>{p.sport}</Sport>
                   <Teams>{p.teams}</Teams>
                   {p.pick && <Info>Pick: <strong>{p.pick}</strong></Info>}
-                  {p.confidence && <Info>Confidence: {p.confidence}</Info>}
-                  {p.starRating != null && <Info>Rating: {p.starRating}/5 ⭐</Info>}
+                  
+                  {(p.rating != null || p.starRating != null) && (
+                    <Info>
+                      Rating: {p.rating ?? p.starRating}/5 ⭐
+                    </Info>
+                  )}
+                  
                   <Info>Time: {fmtEST(p.gameTime)}</Info>
                   
-                  {/* Conditionally render the Simulator */}
-                  {p.sport === 'MLB' && <Simulator teams={p.teams} pick={p.pick} starRating={p.starRating} />}
+                  {p.teams && <Simulator pickData={p} />}
+                  
+                  {/* --- MOVED OUTPERFORM TEXT HERE --- */}
+                  {p.sport === 'NFL' && p.outperformValue && (
+                    <Info style={{ fontStyle: 'italic', marginTop: '0.35rem' }}>
+                      {p.pick} simulates to outperform their odds by {p.outperformValue} (≥ 0.25).
+                    </Info>
+                  )}
                   
                   {p.rationale && (
                     <Info style={{ fontStyle: 'italic', marginTop: '0.35rem' }}>
@@ -545,36 +572,33 @@ export async function getServerSideProps(context) {
         {
           $project: {
             sport: 1, teams: 1, pick: 1, confidence: 1,
-            rationale: 1, gameTime: "$gameTimeDate", algorithm: 1, starRating: 1
+            rationale: 1, gameTime: "$gameTimeDate", starRating: 1
           }
         }
       ])
       .toArray()
     
-    // NEW: Fetch NFL picks from the 'nfl-picks' collection
     const nflPicks = await client
         .db()
         .collection('nfl-picks')
-        .find({
-            createdAt: { $gte: start }
-        })
+        .find({ createdAt: { $gte: start }})
         .sort({ createdAt: -1 })
         .limit(1)
         .toArray();
 
-    // Combine and format all picks
     const allPicks = [...mlbPicks, ...nflPicks];
     
     picks = allPicks.map(p => ({
       _id:        p._id.toString(),
-      sport:      p.sport ?? 'NFL', // Default to NFL for new picks
+      sport:      p.sport ?? 'NFL',
       teams:      p.teams ?? '',
       pick:       p.pick  ?? null,
       confidence: p.confidence ?? null,
       rationale:  p.rationale  ?? null,
       gameTime:   p.gameTime ? new Date(p.gameTime).toISOString() : null,
-      algorithm:  p.algorithm  ?? null,
       starRating: p.starRating ?? null,
+      rating:     p.rating ?? null,
+      outperformValue: p.outperformValue ?? null,
     }));
   }
 

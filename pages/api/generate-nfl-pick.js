@@ -1,141 +1,138 @@
 // pages/api/generate-nfl-pick.js
 import clientPromise from '../../lib/mongodb';
-import axios from 'axios';
-import { getWeeklyNFLGames } from '../../lib/nflApi';
+import { getUpcomingNFLGames } from '../../lib/nflApi';
+import { simulateNFLGame, calculateNFLOutperformValue } from '../../lib/probability';
 
-// The API key for API-Sports
-const API_KEY = process.env.API_SPORTS_NFL_KEY;
-
-// ---- Team Rankings List ----
+// Team rankings list
 const teamRankings = {
-  'Eagles': 1,
-  'Packers': 2,
-  'Bills': 3,
-  'Ravens': 4,
-  'Lions': 5,
-  'Rams': 6,
-  'Chargers': 7,
-  'Colts': 8,
-  'Chiefs': 9,
-  'Buccaneers': 10,
-  'Broncos': 11,
-  '49ers': 12,
-  'Commanders': 13,
-  'Falcons': 14,
-  'Vikings': 15,
-  'Cardinals': 16,
-  'Steelers': 17,
-  'Seahawks': 18,
-  'Bengals': 19,
-  'Texans': 20,
-  'Cowboys': 21,
-  'Patriots': 22,
-  'Jaguars': 23,
-  'Raiders': 24,
-  'Bears': 25,
-  'Browns': 26,
-  'Titans': 27,
-  'Jets': 28,
-  'Giants': 29,
-  'Dolphins': 30,
-  'Saints': 31,
-  'Panthers': 32,
+  'Philadelphia Eagles': 1, 'Green Bay Packers': 2, 'Buffalo Bills': 3, 'Baltimore Ravens': 4,
+  'Detroit Lions': 5, 'Los Angeles Rams': 6, 'Los Angeles Chargers': 7, 'Indianapolis Colts': 8,
+  'Kansas City Chiefs': 9, 'Tampa Bay Buccaneers': 10, 'Denver Broncos': 11, 'San Francisco 49ers': 12,
+  'Washington Commanders': 13, 'Atlanta Falcons': 14, 'Minnesota Vikings': 15, 'Arizona Cardinals': 16,
+  'Pittsburgh Steelers': 17, 'Seattle Seahawks': 18, 'Cincinnati Bengals': 19, 'Houston Texans': 20,
+  'Dallas Cowboys': 21, 'New England Patriots': 22, 'Jacksonville Jaguars': 23, 'Las Vegas Raiders': 24,
+  'Chicago Bears': 25, 'Cleveland Browns': 26, 'Tennessee Titans': 27, 'New York Jets': 28,
+  'New York Giants': 29, 'Miami Dolphins': 30, 'New Orleans Saints': 31, 'Carolina Panthers': 32,
 };
 
-// --- Helpers ----
-
-async function findOddsForPick(gameId) {
-  const url = `https://v1.american-football.api-sports.io/odds`;
-  try {
-    const { data } = await axios.get(url, {
-      params: {
-        game: gameId,
-      },
-      headers: {
-        'x-apisports-key': API_KEY, // Correct header for a direct API-Sports account
-      },
-    });
-
-    if (data.response && data.response.length > 0) {
-      return 'TBD';
-    }
-
-    return null;
-  } catch (err) {
-    console.error('NFL Odds fetch error:', err.message);
-    return null;
-  }
+// Helper function to calculate the star rating based on disparity
+function getNFLRating(disparity) {
+  if (disparity >= 24) return 5;
+  if (disparity >= 13) return 4;
+  if (disparity >= 8) return 3;
+  if (disparity >= 5) return 2;
+  if (disparity >= 1) return 1;
+  return 0;
 }
 
-// --- Main Handler ---
-
+// --- Main API Handler ---
 export default async function handler(req, res) {
   try {
     const client = await clientPromise;
     const col = client.db().collection('nfl-picks');
-
     const today = new Date().toISOString().split('T')[0];
-    const existingPick = await col.findOne({ date: today });
 
+    let existingPick = await col.findOne({ date: today });
+
+    // --- Data Backfilling Logic ---
+    // If a pick exists but is missing the new data, update it.
+    if (existingPick && (typeof existingPick.rating === 'undefined' || typeof existingPick.outperformValue === 'undefined')) {
+      console.log(`Backfilling missing data for existing pick: ${existingPick._id}`);
+      
+      const [homeTeamName, awayTeamName] = existingPick.teams.split(' vs ');
+      const homeTeam = { name: homeTeamName, rank: teamRankings[homeTeamName] || 99 };
+      const awayTeam = { name: awayTeamName, rank: teamRankings[awayTeamName] || 99 };
+      
+      const disparity = Math.abs(homeTeam.rank - awayTeam.rank);
+      
+      const rating = getNFLRating(disparity);
+      const simulation = simulateNFLGame(homeTeam, awayTeam);
+      const outperformValue = calculateNFLOutperformValue(disparity);
+
+      // Update the object in memory and in the database
+      existingPick.rating = rating;
+      existingPick.simulation = simulation;
+      existingPick.outperformValue = outperformValue;
+      
+      await col.updateOne(
+        { _id: existingPick._id },
+        { $set: { 
+            rating: rating, 
+            simulation: simulation,
+            outperformValue: outperformValue 
+        }}
+      );
+    }
+    
     if (existingPick) {
-      if (existingPick.odds === 'TBD') {
-        const odds = await findOddsForPick(existingPick.gameId);
-        if (odds) {
-          await col.updateOne({ _id: existingPick._id }, { $set: { odds } });
-          existingPick.odds = odds;
-        }
-      }
       return res.status(200).json({ success: true, pick: existingPick });
     }
 
-    const currentSeason = 2025;
-    const currentWeek = 3;
+    // --- Generate a New Pick ---
+    const allUpcomingGames = await getUpcomingNFLGames();
 
-    const games = await getWeeklyNFLGames(currentSeason, currentWeek);
-    if (games.length === 0) {
-      return res.status(200).json({ success: true, pick: null });
+    if (!allUpcomingGames || allUpcomingGames.length === 0) {
+        return res.status(200).json({ success: true, pick: null, message: "No upcoming games found." });
     }
 
+    const sortedGames = allUpcomingGames
+      .map(game => ({ ...game, commence_time: new Date(game.commence_time) }))
+      .sort((a, b) => a.commence_time - b.commence_time);
+
+    const nextGameDate = sortedGames[0].commence_time.toISOString().split('T')[0];
+    const gamesOnNextDate = sortedGames.filter(game => game.commence_time.toISOString().split('T')[0] === nextGameDate);
+
+    if (gamesOnNextDate.length === 0) {
+        return res.status(200).json({ success: true, pick: null, message: `No games found for ${nextGameDate}` });
+    }
+    
     let bestDisparity = -1;
-    let bestPick = null;
+    let gameForPick = null;
 
-    for (const game of games) {
-      const homeTeamName = game.teams.home.name;
-      const awayTeamName = game.teams.away.name;
-
-      const homeRank = teamRankings[homeTeamName] || 99;
-      const awayRank = teamRankings[awayTeamName] || 99;
-
+    for (const game of gamesOnNextDate) {
+      const homeRank = teamRankings[game.home_team] || 99;
+      const awayRank = teamRankings[game.away_team] || 99;
       const disparity = Math.abs(homeRank - awayRank);
 
       if (disparity > bestDisparity) {
         bestDisparity = disparity;
-        const pickTeam = homeRank < awayRank ? homeTeamName : awayTeamName;
-        
-        bestPick = {
-          teams: `${homeTeamName} vs ${awayTeamName}`,
-          pick: pickTeam,
-          disparity: disparity,
-          gameId: game.id,
-          sport: 'NFL',
-        };
+        gameForPick = game;
       }
     }
 
-    if (bestPick) {
-      const odds = await findOddsForPick(bestPick.gameId);
-      await col.insertOne({
-        ...bestPick,
-        odds: odds ?? 'TBD',
-        date: today,
-        createdAt: new Date(),
+    let bestPick = null;
+    if (gameForPick) {
+      const homeTeam = { name: gameForPick.home_team, rank: teamRankings[gameForPick.home_team] || 99 };
+      const awayTeam = { name: gameForPick.away_team, rank: teamRankings[gameForPick.away_team] || 99 };
+      const disparity = Math.abs(homeTeam.rank - awayTeam.rank);
+      const pickTeam = homeTeam.rank < awayTeam.rank ? homeTeam.name : awayTeam.name;
+      
+      const simulation = simulateNFLGame(homeTeam, awayTeam);
+      const gameTime = new Date(gameForPick.commence_time).toLocaleString('en-US', {
+          timeZone: 'America/New_York',
+          dateStyle: 'short',
+          timeStyle: 'short',
       });
+      
+      bestPick = {
+        teams: `${homeTeam.name} vs ${awayTeam.name}`,
+        pick: pickTeam,
+        disparity: disparity,
+        rating: getNFLRating(disparity),
+        simulation: simulation,
+        gameId: gameForPick.id,
+        sport: 'NFL',
+        gameTime: gameTime,
+        outperformValue: calculateNFLOutperformValue(disparity),
+      };
+
+      await col.insertOne({ ...bestPick, odds: 'TBD', date: today, createdAt: new Date() });
     }
 
     return res.status(200).json({ success: true, pick: bestPick });
 
   } catch (err) {
-    console.error('NFL Pick Generation Error:', err);
+    console.error('NFL Pick Generation Error:', err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 }
