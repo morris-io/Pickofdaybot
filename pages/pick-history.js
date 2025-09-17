@@ -10,13 +10,13 @@ import { useEffect, useState } from 'react'
 
 const Wrap = styled.div`
   min-height: calc(100vh - 160px);
-  padding: 2rem 1rem;
+  padding: 1rem 1rem;
   background: #f9fafb;
 `
 
 const Header = styled.div`
   max-width: 980px;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.5rem;
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -83,7 +83,7 @@ const Button = styled.button`
   color: white;
   border: 0;
   border-radius: 0.5rem;
-  padding: 0.6rem 1rem;
+  padding: 0.8rem 1.29rem;
   font-weight: 600;
   cursor: pointer;
   &:hover { background: #4338ca; }
@@ -94,9 +94,9 @@ const Secondary = styled(Link)`
   background: #111827;
   color: white;
   border-radius: 0.5rem;
-  padding: 0.6rem 1rem;
+  padding: 0.5rem 1rem;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
   &:hover { background: #0b0f1a; }
 `
 
@@ -524,6 +524,8 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
               <option value="30">Last 30 days</option>
               <option value="60">Last 60 days</option>
             </Select>
+            
+            <Button type="submit">Apply</Button>
 
             <CheckboxLabel>
               <input
@@ -534,7 +536,6 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
               Include upcoming
             </CheckboxLabel>
 
-            <Button type="submit">Apply</Button>
           </Controls>
         </Header>
 
