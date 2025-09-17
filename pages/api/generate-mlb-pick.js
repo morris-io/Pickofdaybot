@@ -26,10 +26,8 @@ function startOfTodayEST() {
   const y = parts.find(p => p.type === 'year').value;
   const m = parts.find(p => p.type === 'month').value;
   const d = parts.find(p => p.type === 'day').value;
-  const midnightStr = `${y}-${m}-${d} 00:00:00`;
-  return new Date(
-    new Date(midnightStr).toLocaleString('en-US', { timeZone: 'America/New_York' })
-  );
+  const midnightStr = `${y}-${m}-${d}T00:00:00-05:00`; // Use ISO string with EST offset
+  return new Date(midnightStr);
 }
 
 async function fetchOddsForPick(eventId, pickTeam) {
