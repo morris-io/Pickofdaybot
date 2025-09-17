@@ -1,0 +1,14 @@
+{
+    "crons": [
+      {
+        "path": "/api/generate-mlb-pick",
+        "schedule": "0 9 * * *",
+        "timezone": "America/New_York"
+      },
+      {
+        "path": "/api/check-results",
+        "schedule": "0 9 * * *",
+        "timezone": "America/New_York"
+      }
+    ]
+  }
