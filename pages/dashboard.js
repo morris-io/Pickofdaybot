@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react'
 // --- Styled components ---
 const PageWrapper = styled.div`
   min-height: calc(100vh - 160px);
-  padding: .75rem 1rem;
+  padding: 0.05rem 1rem;
   background: #f9fafb;
 `
 
@@ -31,7 +31,7 @@ const HeroText = styled.p`
   font-size: 1.05rem;
   color: #4b5563;
   line-height: 1.6;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 `
 
 const Buttons = styled.div`
@@ -46,9 +46,9 @@ const Button = styled.button`
   color: white;
   font-size: 0.95rem;
   font-weight: 500;
-  padding: 0.65rem 1.25rem;
+  padding: .65rem 1.25rem;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: .5rem;
   cursor: pointer;
   transition: background 0.2s;
   &:hover { background: #4338ca; }
@@ -445,7 +445,7 @@ export default function Dashboard({ session = {}, isSubscribed = false, picks = 
 
             <Buttons>
               <Button onClick={handleStartTrial}>
-                Start Your 7-Day Free Trial
+                Start Your Free Trial
               </Button>
               <Link href="/pick-history" passHref legacyBehavior>
                 <LinkButton>View Pick History</LinkButton>

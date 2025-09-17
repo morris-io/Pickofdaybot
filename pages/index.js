@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 const Hero = styled.section`
   text-align: center;
-  padding: 6rem 1rem;
+  padding: 3rem 1rem;
 `
 
 const Title = styled.h1`
