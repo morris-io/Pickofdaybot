@@ -1,45 +1,42 @@
 // pages/register.js
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
+import { getCsrfToken, signIn } from 'next-auth/react'
 import Layout from '../components/Layout'
+import styled from 'styled-components'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
 
 const PageWrapper = styled.div`
+  display: block; /* Change from flex to block */
   min-height: calc(100vh - 160px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding-top: 4rem; /* Add padding to push down from the top */
   background: #f9fafb;
-  padding: 2rem;
 `
 
 const Card = styled.div`
-  background: #ffffff;
-  padding: 2.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  width: 100%;
   max-width: 400px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 `
 
 const Title = styled.h1`
-  font-size: 2rem;
-  color: #4f46e5;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
   text-align: center;
   margin-bottom: 1.5rem;
 `
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`
-
-const Input = styled.input`
-  padding: 0.75rem 1rem;
+const InputField = styled(Field)`
+  width: 100%;
+  padding: 0.65rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  margin-top: 0.25rem;
+  transition: border-color 0.2s;
   &:focus {
     outline: none;
     border-color: #4f46e5;
@@ -47,57 +44,80 @@ const Input = styled.input`
   }
 `
 
-const Button = styled.button`
-  padding: 0.75rem;
+const Label = styled.label`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+`
+
+const SubmitButton = styled.button`
+  width: 100%;
   background: #4f46e5;
   color: white;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
+  padding: 0.75rem 1.25rem;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: 1rem;
   &:hover {
     background: #4338ca;
   }
 `
 
-const HelperText = styled.p`
+const Error = styled(ErrorMessage)`
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+`
+
+const LinkWrapper = styled.div`
   text-align: center;
-  font-size: 0.875rem;
-  color: #6b7280;
   margin-top: 1rem;
 `
 
-const LinkText = styled.a`
+const PageLink = styled.a`
+  font-size: 0.9rem;
   color: #4f46e5;
-  font-weight: 500;
-  cursor: pointer;
+  text-decoration: none;
   &:hover {
     text-decoration: underline;
   }
 `
 
 export default function Register() {
-  const [name, setName]       = useState('')
-  const [email, setEmail]     = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]     = useState('')
-  const router                = useRouter()
+  const router = useRouter()
+  const [errorMsg, setErrorMsg] = useState(null)
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setError('')
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    })
-    if (res.ok) {
-      router.push('/login')
-    } else {
-      const { message, error: err } = await res.json()
-      setError(message || err || 'Registration failed')
+  const handleRegister = async (values) => {
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // Automatically sign in the user after successful registration
+        const signInRes = await signIn('credentials', {
+          redirect: false,
+          username: values.username,
+          password: values.password,
+        })
+        if (signInRes.error) {
+          setErrorMsg('Registration successful, but failed to log in automatically.')
+        } else {
+          router.push('/dashboard')
+        }
+      } else {
+        setErrorMsg(data.message || 'Registration failed.')
+      }
+    } catch (err) {
+      setErrorMsg('An unexpected error occurred.')
     }
   }
 
@@ -105,40 +125,53 @@ export default function Register() {
     <Layout>
       <PageWrapper>
         <Card>
-          <Title>Create Account</Title>
-          <Form onSubmit={handleSubmit}>
-            <Input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-            <Button type="submit">Sign Up</Button>
-          </Form>
-          {error && (
-            <HelperText style={{ color: '#dc2626' }}>{error}</HelperText>
-          )}
-          <HelperText>
-            Already have an account?{' '}
-            <LinkText onClick={() => router.push('/login')}>
-              Log in
-            </LinkText>
-          </HelperText>
+          <Title>Sign Up</Title>
+          <Formik
+            initialValues={{ name: '', email: '', password: '' }}
+            validate={(values) => {
+              const errors = {}
+              if (!values.name) {
+                errors.name = 'Required'
+              }
+              if (!values.email) {
+                errors.email = 'Required'
+              } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
+                errors.email = 'Invalid email address'
+              }
+              if (!values.password) {
+                errors.password = 'Required'
+              } else if (values.password.length < 6) {
+                errors.password = 'Must be at least 6 characters'
+              }
+              return errors
+            }}
+            onSubmit={(values) => handleRegister(values)}
+          >
+            <Form>
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <InputField type="text" name="name" id="name" />
+                <Error name="name" component="div" />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <InputField type="email" name="email" id="email" />
+                <Error name="email" component="div" />
+              </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <InputField type="password" name="password" id="password" />
+                <Error name="password" component="div" />
+              </div>
+              <SubmitButton type="submit">Sign Up</SubmitButton>
+            </Form>
+          </Formik>
+          {errorMsg && <div style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>{errorMsg}</div>}
+          <LinkWrapper>
+            <PageLink onClick={() => router.push('/login')}>
+              Already have an account? Log in
+            </PageLink>
+          </LinkWrapper>
         </Card>
       </PageWrapper>
     </Layout>
