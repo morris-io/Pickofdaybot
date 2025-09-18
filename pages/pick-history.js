@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react'
 
 const Wrap = styled.div`
   min-height: calc(100vh - 160px);
-  padding: 1rem 1rem;
+  padding: auto 1rem;
   background: #f9fafb;
 `
 
