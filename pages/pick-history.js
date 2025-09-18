@@ -100,7 +100,7 @@ const Button = styled.button`
   color: white;
   border: 0;
   border-radius: 0.5rem;
-  padding: 0.8rem 1.2rem;
+  padding: 0.7rem 1.2rem;
   font-weight: 600;
   cursor: pointer;
   &:hover { background: #0b0f1a; }
