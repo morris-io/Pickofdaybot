@@ -634,7 +634,7 @@ export async function getServerSideProps(ctx) {
 
   const q = ctx.query || {}
   const algo = (q.algo || 'all').toString()
-  const days = Math.max(1, parseInt(q.days || '30', 10))
+  const days = Math.max(1, parseInt(q.days || '60', 10))
   const includeUpcoming = (q.includeUpcoming || 'false') === 'true'
   const page = Math.max(1, parseInt(q.page || '1', 10))
   const pageSize = Math.min(50, Math.max(5, parseInt(q.pageSize || '10', 10)))
