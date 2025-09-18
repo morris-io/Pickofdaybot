@@ -87,7 +87,7 @@ const Select = styled.select`
 
 const CheckboxLabel = styled.label`
   display: inline-flex;
-  padding: 0.35rem 0.45rem;
+  padding: 0.35rem 0rem;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.95rem;
