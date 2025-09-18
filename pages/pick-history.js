@@ -56,11 +56,24 @@ const SummaryPill = styled.div`
 `
 
 // --- UPDATED CONTROLS STYLES ---
-const Controls = styled.form`
-  display: flex; /* This is the key change */
-  align-items: center; /* This vertically aligns the items */
-  flex-wrap: nowrap; /* This prevents the items from wrapping to a new line */
+const ControlsContainer = styled.div`
+  display: flex;
+  justify-content: space-between; /* This is the key */
+  align-items: center;
+  width: 100%;
+`
+
+const FilterGroup = styled.div`
+  display: flex;
   gap: 0.5rem;
+  align-items: center;
+`
+
+const Controls = styled.form`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
 `
 
 const Select = styled.select`
@@ -74,6 +87,7 @@ const Select = styled.select`
 
 const CheckboxLabel = styled.label`
   display: inline-flex;
+  padding: 0.35rem 0.45rem;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.95rem;
@@ -490,44 +504,44 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
       <Wrap>
         <Header>
           <Title>Pick History</Title>
-          <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={controls.includeUpcoming}
-                onChange={e => setControls(s => ({ ...s, includeUpcoming: e.target.checked }))}
-              />
-              Include upcoming
-            </CheckboxLabel>
+          <Controls as="div"> {/* Use as="div" to avoid nested forms */}
+              <CheckboxLabel>
+                <input
+                  type="checkbox"
+                  checked={controls.includeUpcoming}
+                  onChange={e => setControls(s => ({ ...s, includeUpcoming: e.target.checked }))}
+                />
+                Include upcoming
+              </CheckboxLabel>
+          </Controls>
         </Header>
 
         <Header>
-          <Controls onSubmit={applyFilters}>
-            <Select
-              value={controls.algo}
-              onChange={e => setControls(s => ({ ...s, algo: e.target.value }))}
-              aria-label="Algorithm"
-            >
-              <option value="all">All Algorithms</option>
-              <option value="whip">WHIP</option>
-              <option value="series">Series</option>
-            </Select>
+          <ControlsContainer>
+              <FilterGroup as="form" onSubmit={applyFilters}>
+                  <Select
+                      value={controls.algo}
+                      onChange={e => setControls(s => ({ ...s, algo: e.target.value }))}
+                      aria-label="Algorithm"
+                  >
+                      <option value="all">All Algorithms</option>
+                      <option value="whip">WHIP</option>
+                      <option value="series">Series</option>
+                  </Select>
 
-            <Select
-              value={controls.days}
-              onChange={e => setControls(s => ({ ...s, days: e.target.value }))}
-              aria-label="Lookback"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="14">Last 14 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="60">Last 60 days</option>
-            </Select>
-            
-            <Button type="submit">Apply</Button>
-
-            
-
-          </Controls>
+                  <Select
+                      value={controls.days}
+                      onChange={e => setControls(s => ({ ...s, days: e.target.value }))}
+                      aria-label="Lookback"
+                  >
+                      <option value="7">Last 7 days</option>
+                      <option value="14">Last 14 days</option>
+                      <option value="30">Last 30 days</option>
+                      <option value="60">Last 60 days</option>
+                  </Select>
+              </FilterGroup>
+              <Button type="button" onClick={applyFilters}>Apply</Button>
+          </ControlsContainer>
         </Header>
 
         {/* Success summary */}
@@ -566,7 +580,6 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
                     {p.starRating != null ? ' ' : ''}
                   </Muted>
 
-                  {/* Show final score when available */}
                   {p.finalScore ? (
                     <Muted style={{ marginTop: '.25rem' }}>
                       Final: {p.finalScore}
@@ -575,7 +588,6 @@ export default function PickHistory({ session, rows, total, page, pageSize, algo
 
                   {p.rationale ? <Italic>{p.rationale}</Italic> : null}
 
-                  {/* Simulator dropdown (kept inside card; stops link navigation) */}
                   <Simulator teams={p.teams} pick={p.pick} starRating={p.starRating} />
                 </Card>
               )
